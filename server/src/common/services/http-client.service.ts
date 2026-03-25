@@ -20,6 +20,8 @@ export class HttpClientService {
       );
       return response.data;
     } catch (error) {
+      // console.error('HTTP POST request failed:', error);
+      // console.log('Error response data:', error.response?.data);
       const status = error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR;
       const message = error.response?.data || HTTP_FAILED;
       throw new HttpException(message, status);
@@ -92,8 +94,8 @@ export class HttpClientService {
     }
 
     const headersToInclude = [
-      'authorization',
-      'accept',
+      'Authorization',
+      'Content-Type',
       // Add other headers
     ];
 
@@ -106,6 +108,7 @@ export class HttpClientService {
       }
     }
 
+    // console.log('Filtered headers for outgoing request:', necessaryHeaders);
     return necessaryHeaders;
   }
 }
