@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: devmonks-postgres
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-kingemon}
+      POSTGRES_DB: ${DB_DATABASE:-devmonk}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - devmonks-network
+
+  # NestJS Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: devmonks-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_NAME: ${APP_NAME:-DEV_MONKS_ASSESSMENT}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3000}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-devmonk}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-kingemon}
+      DB_LOGGER: ${DB_LOGGER:-false}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      HN_URL: ${HN_URL:-https://hacker-news.firebaseio.com}
+      GROK_API_KEY: ${GROK_API_KEY:-}
+      OPENAI_URL: ${OPENAI_URL:-https://api.openai.com/}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-5-nano}
+    ports:
+      - "${PORT:-3000}:3000"
+    networks:
+      - devmonks-network
+
+  # Angular Client
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: devmonks-client
+    depends_on:
+      - server
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+    ports:
+      - "4200:4200"
+    networks:
+      - devmonks-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  devmonks-network:
+    driver: bridge
