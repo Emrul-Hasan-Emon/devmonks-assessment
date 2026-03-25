@@ -5,7 +5,7 @@ import {
   getSearchPaginateData,
 } from 'src/common/decorator/pagination.decorator';
 import { HttpClientService } from 'src/common/services/http-client.service';
-import { TopStoryItemDto } from './dto/top-stories-list-response.dto';
+import { StoryItemDto } from './dto/stories-list-response.dto';
 import {
   StoryDetailsResponseDto,
   StoryCommentResponseDto,
@@ -43,7 +43,7 @@ export class StoryService {
 
     let stories = await Promise.all(
       paginatedIds.map((id) =>
-        this.httpClientService.get<TopStoryItemDto>(
+        this.httpClientService.get<StoryItemDto>(
           `${this.HN_URL}/v0/item/${id}.json?print=pretty`,
         ),
       ),
@@ -72,7 +72,7 @@ export class StoryService {
 
     let stories = await Promise.all(
       paginatedIds.map((id) =>
-        this.httpClientService.get<TopStoryItemDto>(
+        this.httpClientService.get<StoryItemDto>(
           `${this.HN_URL}/v0/item/${id}.json?print=pretty`,
         ),
       ),
@@ -101,7 +101,7 @@ export class StoryService {
 
     let stories = await Promise.all(
       paginatedIds.map((id) =>
-        this.httpClientService.get<TopStoryItemDto>(
+        this.httpClientService.get<StoryItemDto>(
           `${this.HN_URL}/v0/item/${id}.json?print=pretty`,
         ),
       ),

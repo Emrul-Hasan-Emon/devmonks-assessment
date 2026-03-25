@@ -1,4 +1,4 @@
-export interface TopStoryItemDto {
+export interface StoryItemDto {
   by: string;
   descendants?: number;
   id: number;
