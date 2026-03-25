@@ -13,6 +13,7 @@ import { AppService } from './app.service';
 import { HttpExceptionFilter } from './common/validations/http-exception.filter';
 import { StoryModule } from './story/story.module';
 import { CommonModule } from './common/common.module';
+import { BookmarkModule } from './bookmark/bookmark.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { CommonModule } from './common/common.module';
     MysqlModule,
     CommonModule,
     StoryModule,
+    BookmarkModule,
   ],
   controllers: [AppController],
   providers: [
