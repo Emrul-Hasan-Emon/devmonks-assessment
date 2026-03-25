@@ -1,13 +1,17 @@
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Bookmark } from './entities/bookmark/bookmark.entity';
 
 @Injectable()
-export class PostgresService {
-  // persons: Repository<Person>;
+export class PostgresService implements OnApplicationBootstrap {
+  bookmark: Repository<Bookmark>;
+  constructor(
+    @InjectRepository(Bookmark)
+    private readonly bookmarkRepository: Repository<Bookmark>,
+  ) {}
 
-  constructor() // @InjectRepository(Person)
-  // private personRepository: Repository<Person>,
-  {}
   onApplicationBootstrap() {
-    // this.persons = this.personRepository;
+    this.bookmark = this.bookmarkRepository;
   }
 }
