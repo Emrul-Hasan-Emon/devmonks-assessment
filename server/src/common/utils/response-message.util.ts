@@ -15,6 +15,7 @@ export const VALIDATED = 'Validated successfully';
 export const UPLOADED = 'Uploaded successfully';
 export const REMOVED = 'Removed successfully';
 export const AGREEMENT_DELETED = 'Agreement deleted successfully';
+export const HTTP_FAILED = 'HTTP request failed';
 
 //////// FAILED RESPONSE
 export const ERROR = 'Something went wrong';
