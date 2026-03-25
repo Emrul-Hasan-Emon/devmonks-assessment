@@ -43,13 +43,21 @@
 
       <div class="story-footer">
         <span class="date">{{ formatDate(story.time) }}</span>
-        <button
-          class="read-more-btn"
-          (click)="openStory(story.url)"
-          *ngIf="story.url"
-        >
-          Read More
-        </button>
+        <div class="action-buttons">
+          <button
+            class="details-btn"
+            (click)="viewStoryDetails(story.id)"
+          >
+            View Details
+          </button>
+          <button
+            class="read-more-btn"
+            (click)="openStory(story.url)"
+            *ngIf="story.url"
+          >
+            Read More
+          </button>
+        </div>
       </div>
     </div>
   </div>

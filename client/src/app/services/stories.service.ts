@@ -11,6 +11,18 @@ export interface Story {
   time: number;
   descendants: number;
   kids?: number[];
+  type?: string;
+  comments?: Comment[];
+}
+
+export interface Comment {
+  id: number;
+  by?: string;
+  text?: string;
+  time: number;
+  type: string;
+  parent: number;
+  comments?: Comment[];
 }
 
 export interface SearchPagination {
@@ -65,6 +77,11 @@ export class StoriesService {
 
   getStoryDetails(id: number, type: 'top' | 'best' | 'new' = 'top'): Observable<Story> {
     return this.http.get<Story>(`${this.baseUrl}/${type}-story-details/${id}`);
+  }
+
+  getStoryDetailsWithComments(id: number, type: 'top' | 'best' | 'new' | 'bookmarked' = 'top'): Observable<Story> {
+    const endpoint = type === 'bookmarked' ? `${this.bookmarkUrl}/${id}` : `${this.baseUrl}/${type}-story-details/${id}`;
+    return this.http.get<Story>(endpoint);
   }
 
   addBookmark(storyId: number): Observable<any> {

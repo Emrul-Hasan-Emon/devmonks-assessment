@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { StoriesService, Story, StoriesResponse } from '../services/stories.service';
 
 type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
@@ -34,7 +35,7 @@ export class StoriesListComponent implements OnInit {
     { id: 'bookmarked', label: 'Bookmarked' }
   ];
 
-  constructor(private storiesService: StoriesService, private cdr: ChangeDetectorRef) {}
+  constructor(private storiesService: StoriesService, private cdr: ChangeDetectorRef, private router: Router) {}
 
   ngOnInit(): void {
     this.loadStories();
@@ -170,5 +171,9 @@ export class StoriesListComponent implements OnInit {
 
   openStory(url: string): void {
     window.open(url, '_blank');
+  }
+
+  viewStoryDetails(storyId: number): void {
+    this.router.navigate(['/story', storyId], { queryParams: { type: this.activeTab } });
   }
 }
