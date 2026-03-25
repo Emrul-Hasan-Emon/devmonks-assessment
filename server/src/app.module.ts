@@ -11,6 +11,8 @@ import { createTypeOrmConfig } from 'src/database/postgres/ormconfig';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HttpExceptionFilter } from './common/validations/http-exception.filter';
+import { StoryModule } from './story/story.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -36,6 +38,8 @@ import { HttpExceptionFilter } from './common/validations/http-exception.filter'
       serveRoot: '/uploads',
     }),
     MysqlModule,
+    CommonModule,
+    StoryModule,
   ],
   controllers: [AppController],
   providers: [
