@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { StoriesService, Story, StoriesResponse } from '../services/stories.service';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, finalize } from 'rxjs/operators';
 
 type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
 
@@ -18,7 +20,7 @@ interface Tab {
   templateUrl: './stories-list.component.html',
   styleUrls: ['./stories-list.component.css']
 })
-export class StoriesListComponent implements OnInit {
+export class StoriesListComponent implements OnInit, OnDestroy {
   stories: Story[] = [];
   activeTab: StoryType = 'top';
   currentPage: number = 0;
@@ -29,6 +31,7 @@ export class StoriesListComponent implements OnInit {
   hasMorePages: boolean = false;
   bookmarkedStoryIds: Set<number> = new Set();
   bookmarkingStoryIds: Set<number> = new Set();
+  private destroy$ = new Subject<void>();
 
   tabs: Tab[] = [
     { id: 'top', label: 'Top Stories' },
@@ -41,12 +44,19 @@ export class StoriesListComponent implements OnInit {
 
   ngOnInit(): void {
     // Check if coming back from story details with a type parameter
-    this.route.queryParams.subscribe(params => {
-      if (params['type']) {
-        this.activeTab = params['type'] as StoryType;
-      }
-      this.loadStories();
-    });
+    this.route.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(params => {
+        if (params['type']) {
+          this.activeTab = params['type'] as StoryType;
+        }
+        this.loadStories();
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   selectTab(tabId: StoryType): void {
@@ -82,7 +92,9 @@ export class StoriesListComponent implements OnInit {
         return;
     }
 
-    request.subscribe({
+    request
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (response: any) => {
         console.log('Raw API Response:', response);
         
@@ -121,10 +133,17 @@ export class StoriesListComponent implements OnInit {
         this.cdr.markForCheck();
         console.log('Loaded stories:', this.stories);
         
-        // Check bookmark status for each story
-        this.stories.forEach(story => {
-          this.checkIfBookmarked(story.id);
-        });
+        // Only check bookmark status for non-bookmarked tabs
+        // For bookmarked tab, all stories are already bookmarked
+        if (this.activeTab !== 'bookmarked' && this.stories.length > 0) {
+          this.checkBookmarksInBatch();
+        } else if (this.activeTab === 'bookmarked') {
+          // Mark all stories as bookmarked for bookmarked tab
+          this.stories.forEach(story => {
+            this.bookmarkedStoryIds.add(story.id);
+          });
+          this.cdr.markForCheck();
+        }
       },
       error: (error) => {
         console.error('Error loading stories:', error);
@@ -135,20 +154,52 @@ export class StoriesListComponent implements OnInit {
     });
   }
 
-  checkIfBookmarked(storyId: number): void {
-    this.storiesService.isBookmarked(storyId).subscribe({
-      next: (response: any) => {
-        if (response.isBookmarked) {
-          this.bookmarkedStoryIds.add(storyId);
-        } else {
-          this.bookmarkedStoryIds.delete(storyId);
-        }
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error checking bookmark status:', error);
-      }
+  checkBookmarksInBatch(): void {
+    // Check bookmarks for all stories in batch with reduced frequency
+    // Limit to first few stories to reduce API load
+    const storiesToCheck = this.stories.slice(0, 5);
+    
+    storiesToCheck.forEach(story => {
+      this.storiesService.isBookmarked(story.id)
+        .pipe(
+          takeUntil(this.destroy$),
+          finalize(() => {
+            // No need to do anything on completion
+          })
+        )
+        .subscribe({
+          next: (response: any) => {
+            if (response.isBookmarked) {
+              this.bookmarkedStoryIds.add(story.id);
+            } else {
+              this.bookmarkedStoryIds.delete(story.id);
+            }
+            this.cdr.markForCheck();
+          },
+          error: (error) => {
+            console.error('Error checking bookmark status:', error);
+          }
+        });
     });
+  }
+
+  checkIfBookmarked(storyId: number): void {
+    // Fallback method for individual checks if needed
+    this.storiesService.isBookmarked(storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.isBookmarked) {
+            this.bookmarkedStoryIds.add(storyId);
+          } else {
+            this.bookmarkedStoryIds.delete(storyId);
+          }
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error checking bookmark status:', error);
+        }
+      });
   }
 
   isStoryBookmarked(storyId: number): boolean {
@@ -163,19 +214,21 @@ export class StoriesListComponent implements OnInit {
     this.bookmarkingStoryIds.add(storyId);
     this.cdr.markForCheck();
 
-    this.storiesService.addBookmark(storyId).subscribe({
-      next: (response) => {
-        console.log('Story added to bookmarks:', response);
-        this.bookmarkedStoryIds.add(storyId);
-        this.bookmarkingStoryIds.delete(storyId);
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error adding bookmark:', error);
-        this.bookmarkingStoryIds.delete(storyId);
-        this.cdr.markForCheck();
-      }
-    });
+    this.storiesService.addBookmark(storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('Story added to bookmarks:', response);
+          this.bookmarkedStoryIds.add(storyId);
+          this.bookmarkingStoryIds.delete(storyId);
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error adding bookmark:', error);
+          this.bookmarkingStoryIds.delete(storyId);
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   removeFromBookmarks(storyId: number, event?: Event): void {
@@ -186,24 +239,26 @@ export class StoriesListComponent implements OnInit {
     this.bookmarkingStoryIds.add(storyId);
     this.cdr.markForCheck();
 
-    this.storiesService.removeBookmark(storyId).subscribe({
-      next: (response) => {
-        console.log('Story removed from bookmarks:', response);
-        this.bookmarkedStoryIds.delete(storyId);
-        this.bookmarkingStoryIds.delete(storyId);
-        this.cdr.markForCheck();
-        
-        // If we're viewing the bookmarked tab, reload the list to show updated bookmarks
-        if (this.activeTab === 'bookmarked') {
-          this.loadStories();
+    this.storiesService.removeBookmark(storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('Story removed from bookmarks:', response);
+          this.bookmarkedStoryIds.delete(storyId);
+          this.bookmarkingStoryIds.delete(storyId);
+          this.cdr.markForCheck();
+          
+          // If we're viewing the bookmarked tab, reload the list to show updated bookmarks
+          if (this.activeTab === 'bookmarked') {
+            this.loadStories();
+          }
+        },
+        error: (error) => {
+          console.error('Error removing bookmark:', error);
+          this.bookmarkingStoryIds.delete(storyId);
+          this.cdr.markForCheck();
         }
-      },
-      error: (error) => {
-        console.error('Error removing bookmark:', error);
-        this.bookmarkingStoryIds.delete(storyId);
-        this.cdr.markForCheck();
-      }
-    });
+      });
   }
 
   nextPage(): void {

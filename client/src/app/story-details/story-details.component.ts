@@ -1,7 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { StoriesService, Story, Comment, StorySummary } from '../services/stories.service';
+import { Subject, combineLatest } from 'rxjs';
+import { takeUntil, map } from 'rxjs/operators';
 
 type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
 
@@ -12,7 +14,7 @@ type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
   templateUrl: './story-details.component.html',
   styleUrls: ['./story-details.component.css']
 })
-export class StoryDetailsComponent implements OnInit {
+export class StoryDetailsComponent implements OnInit, OnDestroy {
   story: Story | null = null;
   isLoading: boolean = false;
   error: string | null = null;
@@ -24,6 +26,7 @@ export class StoryDetailsComponent implements OnInit {
   isSummaryLoading: boolean = false;
   isSummaryVisible: boolean = false;
   summaryError: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private storiesService: StoriesService,
@@ -33,15 +36,30 @@ export class StoryDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      this.storyType = params['type'] || 'top';
-      this.route.params.subscribe(routeParams => {
-        this.storyId = +routeParams['id'];
+    // Use combineLatest to get both params and query params efficiently
+    combineLatest([
+      this.route.params,
+      this.route.queryParams
+    ])
+      .pipe(
+        map(([params, queryParams]) => ({
+          id: +params['id'],
+          type: queryParams['type'] || 'top'
+        })),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(({ id, type }) => {
+        this.storyId = id;
+        this.storyType = type as StoryType;
         if (this.storyId) {
           this.loadStoryDetails();
         }
       });
-    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadStoryDetails(): void {
@@ -50,37 +68,41 @@ export class StoryDetailsComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    this.storiesService.getStoryDetailsWithComments(this.storyId, this.storyType).subscribe({
-      next: (response: Story) => {
-        console.log('Story Details:', response);
-        this.story = response;
-        this.isLoading = false;
-        this.cdr.markForCheck();
-        
-        // Check if story is bookmarked
-        this.checkIfBookmarked();
-      },
-      error: (error) => {
-        console.error('Error loading story details:', error);
-        this.error = `Failed to load story details: ${error.message}`;
-        this.isLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.storiesService.getStoryDetailsWithComments(this.storyId, this.storyType)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: Story) => {
+          console.log('Story Details:', response);
+          this.story = response;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+          
+          // Check if story is bookmarked
+          this.checkIfBookmarked();
+        },
+        error: (error) => {
+          console.error('Error loading story details:', error);
+          this.error = `Failed to load story details: ${error.message}`;
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   checkIfBookmarked(): void {
     if (!this.storyId) return;
 
-    this.storiesService.isBookmarked(this.storyId).subscribe({
-      next: (response: any) => {
-        this.isBookmarked = response.isBookmarked;
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error checking bookmark status:', error);
-      }
-    });
+    this.storiesService.isBookmarked(this.storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.isBookmarked = response.isBookmarked;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error checking bookmark status:', error);
+        }
+      });
   }
 
   addToBookmarks(): void {
@@ -89,19 +111,21 @@ export class StoryDetailsComponent implements OnInit {
     this.isBookmarkLoading = true;
     this.cdr.markForCheck();
 
-    this.storiesService.addBookmark(this.storyId).subscribe({
-      next: (response) => {
-        console.log('Story added to bookmarks:', response);
-        this.isBookmarked = true;
-        this.isBookmarkLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error adding bookmark:', error);
-        this.isBookmarkLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.storiesService.addBookmark(this.storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('Story added to bookmarks:', response);
+          this.isBookmarked = true;
+          this.isBookmarkLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error adding bookmark:', error);
+          this.isBookmarkLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   removeFromBookmarks(): void {
@@ -110,19 +134,21 @@ export class StoryDetailsComponent implements OnInit {
     this.isBookmarkLoading = true;
     this.cdr.markForCheck();
 
-    this.storiesService.removeBookmark(this.storyId).subscribe({
-      next: (response) => {
-        console.log('Story removed from bookmarks:', response);
-        this.isBookmarked = false;
-        this.isBookmarkLoading = false;
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error removing bookmark:', error);
-        this.isBookmarkLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.storiesService.removeBookmark(this.storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('Story removed from bookmarks:', response);
+          this.isBookmarked = false;
+          this.isBookmarkLoading = false;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error removing bookmark:', error);
+          this.isBookmarkLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   getStorySummary(): void {
@@ -132,21 +158,23 @@ export class StoryDetailsComponent implements OnInit {
     this.summaryError = null;
     this.cdr.markForCheck();
 
-    this.storiesService.getStorySummary(this.storyId).subscribe({
-      next: (response: StorySummary) => {
-        console.log('Story summary:', response);
-        this.summary = response;
-        this.isSummaryLoading = false;
-        this.isSummaryVisible = true;
-        this.cdr.markForCheck();
-      },
-      error: (error) => {
-        console.error('Error fetching summary:', error);
-        this.summaryError = `Failed to get summary: ${error.message}`;
-        this.isSummaryLoading = false;
-        this.cdr.markForCheck();
-      }
-    });
+    this.storiesService.getStorySummary(this.storyId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: StorySummary) => {
+          console.log('Story summary:', response);
+          this.summary = response;
+          this.isSummaryLoading = false;
+          this.isSummaryVisible = true;
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          console.error('Error fetching summary:', error);
+          this.summaryError = `Failed to get summary: ${error.message}`;
+          this.isSummaryLoading = false;
+          this.cdr.markForCheck();
+        }
+      });
   }
 
   toggleSummary(): void {
