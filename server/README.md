@@ -66,3 +66,35 @@ Fetch details for story with id 123:
 ```bash
 curl "http://localhost:3000/api/story/top-story-details/123"
 ```
+
+Bookmark APIs
+
+- **Base Path:** `/api/bookmark` (Controller version: `1`)
+
+- **POST:** `/api/bookmark`
+  - **Description:** Add a story to bookmarks. Validates that the story exists by calling the Hacker News details API before saving.
+  - **Body (JSON):** `{ "storyId": number }`
+  - **Responses:**
+    - `201`/`200`: saved bookmark object (`id`, `storyId`, `createdAt`)
+    - `400`: Bad request (missing `HN_URL` or invalid payload)
+    - `404`: Story not found
+
+- **GET:** `/api/bookmark`
+  - **Description:** Returns paginated list of bookmarked stories. Each item is a `StoryItem` (same as story list), with the `kids` property excluded.
+  - **Query Parameters:** `page` (number, default: 0), `size` (number, default: 10, max: 100)
+
+Examples:
+
+Add a bookmark for story `123`:
+
+```bash
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"storyId":123}' \
+  "http://localhost:3000/api/bookmark"
+```
+
+List bookmarks (first page):
+
+```bash
+curl "http://localhost:3000/api/bookmark?page=0&size=10"
+```
