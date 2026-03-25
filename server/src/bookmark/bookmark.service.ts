@@ -72,4 +72,17 @@ export class BookmarkService {
     const filtered = stories.filter((s) => s !== null);
     return getSearchPaginateData(filtered, count, pagination);
   }
+
+  /**
+   * Deletes a bookmark by storyId. Removes the bookmark entry from the database and returns success confirmation.
+   */
+  async deleteBookmark(storyId: number) {
+    const result = await this.postgresService.bookmark.delete({ storyId });
+    
+    if (result.affected === 0) {
+      throw new NotFoundException(`Bookmark for story ${storyId} not found`);
+    }
+
+    return { success: true, message: `Bookmark for story ${storyId} deleted successfully` };
+  }
 }

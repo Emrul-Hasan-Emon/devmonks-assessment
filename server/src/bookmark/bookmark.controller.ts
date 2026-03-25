@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import {
   SearchPagination,
   SearchPaginationParams,
@@ -21,5 +21,10 @@ export class BookmarkController {
   @Get()
   async listBookmarks(@SearchPaginationParams() pagination: SearchPagination) {
     return this.bookmarkService.listBookmarks(pagination);
+  }
+
+  @Delete(':storyId')
+  async deleteBookmark(@Param('storyId') storyId: number) {
+    return this.bookmarkService.deleteBookmark(storyId);
   }
 }
