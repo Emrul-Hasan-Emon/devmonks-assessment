@@ -90,6 +90,12 @@ Bookmark APIs
     - `200`: `{ "success": true, "message": "Bookmark for story <id> deleted successfully" }`
     - `404`: Bookmark not found
 
+- **GET:** `/api/bookmark/status/:storyId`
+  - **Description:** Check if a story is bookmarked.
+  - **Route Parameters:** `storyId` (number)
+  - **Responses:**
+    - `200`: `{ "isBookmarked": boolean, "storyId": number }`
+
 Examples:
 
 Add a bookmark for story `123`:
@@ -104,6 +110,12 @@ List bookmarks (first page):
 
 ```bash
 curl "http://localhost:3000/api/bookmark?page=0&size=10"
+```
+
+Check if story `123` is bookmarked:
+
+```bash
+curl "http://localhost:3000/api/bookmark/status/123"
 ```
 
 Delete bookmark for story `123`:
