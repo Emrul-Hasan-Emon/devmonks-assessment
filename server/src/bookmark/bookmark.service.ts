@@ -85,4 +85,15 @@ export class BookmarkService {
 
     return { success: true, message: `Bookmark for story ${storyId} deleted successfully` };
   }
+
+  /**
+   * Checks if a story is bookmarked by storyId. Returns a boolean indicating whether the bookmark exists.
+   */
+  async isBookmarked(storyId: number) {
+    const bookmark = await this.postgresService.bookmark.findOne({
+      where: { storyId },
+    });
+
+    return { isBookmarked: !!bookmark, storyId };
+  }
 }

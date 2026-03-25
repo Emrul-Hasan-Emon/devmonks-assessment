@@ -27,4 +27,9 @@ export class BookmarkController {
   async deleteBookmark(@Param('storyId') storyId: number) {
     return this.bookmarkService.deleteBookmark(storyId);
   }
+
+  @Get('status/:storyId')
+  async isBookmarked(@Param('storyId') storyId: number) {
+    return this.bookmarkService.isBookmarked(storyId);
+  }
 }
