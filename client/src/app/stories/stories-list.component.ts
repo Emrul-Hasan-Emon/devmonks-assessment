@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { StoriesService, Story, StoriesResponse } from '../services/stories.service';
 
 type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
@@ -37,10 +37,16 @@ export class StoriesListComponent implements OnInit {
     { id: 'bookmarked', label: 'Bookmarked' }
   ];
 
-  constructor(private storiesService: StoriesService, private cdr: ChangeDetectorRef, private router: Router) {}
+  constructor(private storiesService: StoriesService, private cdr: ChangeDetectorRef, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
-    this.loadStories();
+    // Check if coming back from story details with a type parameter
+    this.route.queryParams.subscribe(params => {
+      if (params['type']) {
+        this.activeTab = params['type'] as StoryType;
+      }
+      this.loadStories();
+    });
   }
 
   selectTab(tabId: StoryType): void {

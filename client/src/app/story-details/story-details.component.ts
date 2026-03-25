@@ -122,7 +122,7 @@ export class StoryDetailsComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/stories']);
+    this.router.navigate(['/stories'], { queryParams: { type: this.storyType } });
   }
 
   formatDate(timestamp: number): string {
