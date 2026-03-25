@@ -37,16 +37,8 @@ $ npm run start:prod
   - **Description:** Returns paginated list of new stories.
   - **Query Parameters:** `page` (number, default: 0), `size` (number, default: 10, max: 100)
 
-- **GET:** `/api/story/top-story-details/:id`
-  - **Description:** Returns details for a specific top story by `id`.
-  - **Route Parameters:** `id` (number)
-
-- **GET:** `/api/story/best-story-details/:id`
-  - **Description:** Returns details for a specific best story by `id`.
-  - **Route Parameters:** `id` (number)
-
-- **GET:** `/api/story/new-story-details/:id`
-  - **Description:** Returns details for a specific new story by `id`.
+- **GET:** `/api/story/story-details/:id`
+  - **Description:** Returns details for a specific  story by `id`.
   - **Route Parameters:** `id` (number)
 
 Notes:

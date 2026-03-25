@@ -31,18 +31,8 @@ export class StoryController {
     return this.storyService.getNewStories(pagination);
   }
 
-  @Get('top-story-details/:id')
+  @Get('story-details/:id')
   async getTopStoryDetails(@Param('id') id: number) {
-    return this.storyService.getStoryDetail(id);
-  }
-
-  @Get('best-story-details/:id')
-  async getBestStoryDetails(@Param('id') id: number) {
-    return this.storyService.getStoryDetail(id);
-  }
-
-  @Get('new-story-details/:id')
-  async getNewStoryDetails(@Param('id') id: number) {
     return this.storyService.getStoryDetail(id);
   }
 
