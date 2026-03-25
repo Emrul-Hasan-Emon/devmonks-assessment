@@ -52,7 +52,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
             message: isArray(exceptionData['message'])
               ? exceptionData['message'][0]
               : exceptionData['message'] ||
-                exceptionData['validationErrors'][0] ||
+                (isArray(exceptionData['validationErrors']) ? exceptionData['validationErrors'][0] : undefined) ||
                 exceptionData,
             error:
               exceptionData['error'] ||
@@ -63,7 +63,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
       } else if (exception instanceof QueryFailedError) {
         if (exception.driverError.code === 'ER_DUP_ENTRY') {
           const errorMessage = exception.message;
-          const value = errorMessage.match(/'(.*?)'/)[0];
+          const match = errorMessage.match(/'(.*?)'/);
+          const value = match ? match[0] : 'Duplicate';
           responseBody = {
             statusCode: HttpStatus.CONFLICT,
             message: `${value} already exists!`,
