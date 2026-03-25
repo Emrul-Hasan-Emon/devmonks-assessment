@@ -4,13 +4,17 @@ import {
   SearchPaginationParams,
 } from 'src/common/decorator/pagination.decorator';
 import { StoryService } from './story.service';
+import { SummaryService } from './summary.service';
 
 @Controller({
   path: 'api/story',
   version: '1',
 })
 export class StoryController {
-  constructor(private readonly storyService: StoryService) {}
+  constructor(
+    private readonly storyService: StoryService,
+    private readonly summaryService: SummaryService,
+  ) {}
 
   @Get('top-stories')
   async getTopStories(@SearchPaginationParams() pagination: SearchPagination) {
@@ -40,5 +44,10 @@ export class StoryController {
   @Get('new-story-details/:id')
   async getNewStoryDetails(@Param('id') id: number) {
     return this.storyService.getStoryDetail(id);
+  }
+
+  @Get('summary/:id')
+  async summarizeComments(@Param('id') id: number) {
+    return this.summaryService.summarizeStoryComments(id);
   }
 }
