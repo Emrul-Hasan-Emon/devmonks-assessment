@@ -1,4 +1,10 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class StorySummary {
@@ -11,6 +17,12 @@ export class StorySummary {
   @Column({ type: 'text' })
   summary: string;
 
+  @Column('text', { array: true })
+  keyPoints: string[];
+
+  @Column({ type: 'varchar', length: 20 })
+  sentiment: 'positive' | 'negative' | 'mixed' | 'neutral';
+
   @Column({ type: 'varchar', length: 100, nullable: true })
   model?: string;
 
@@ -19,9 +31,6 @@ export class StorySummary {
 
   @Column({ type: 'int', nullable: true })
   lastCommentCount?: number;
-
-  @Column({ type: 'varchar', length: 50, default: 'ready' })
-  status: string;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
