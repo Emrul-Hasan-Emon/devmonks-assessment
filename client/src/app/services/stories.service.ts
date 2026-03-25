@@ -42,6 +42,17 @@ export interface StoriesResponse {
   };
 }
 
+export interface StorySummary {
+  storyId: number;
+  summary: string;
+  keyPoints: string[];
+  sentiment: 'positive' | 'negative' | 'mixed' | 'neutral';
+  commentCount: number;
+  model: string;
+  tokensUsed: number;
+  timestamp: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -94,5 +105,9 @@ export class StoriesService {
 
   isBookmarked(storyId: number): Observable<{ isBookmarked: boolean; storyId: number }> {
     return this.http.get<{ isBookmarked: boolean; storyId: number }>(`${this.bookmarkUrl}/status/${storyId}`);
+  }
+
+  getStorySummary(storyId: number): Observable<StorySummary> {
+    return this.http.get<StorySummary>(`${this.baseUrl}/summary/${storyId}`);
   }
 }

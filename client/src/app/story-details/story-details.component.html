@@ -69,7 +69,54 @@
         >
           ⭐ Remove from Bookmarks
         </button>
+
+        <button
+          class="summarize-btn"
+          (click)="toggleSummary()"
+          [disabled]="isSummaryLoading"
+          [class.active]="isSummaryVisible"
+          title="Summarize discussion"
+        >
+          {{ isSummaryVisible ? '✕ Hide Summary' : '🤖 Summarize Discussion' }}
+        </button>
       </div>
+    </div>
+
+    <!-- Summary Section -->
+    <div class="summary-section" *ngIf="isSummaryVisible && summary">
+      <div class="summary-container">
+        <div class="summary-header">
+          <h3 class="summary-title">📊 Discussion Summary</h3>
+          <span class="summary-meta">{{ summary.sentiment | titlecase }} • {{ summary.commentCount }} comments</span>
+        </div>
+
+        <div class="summary-content">
+          <div class="summary-text">
+            <p>{{ summary.summary }}</p>
+          </div>
+
+          <div class="key-points" *ngIf="summary.keyPoints && summary.keyPoints.length > 0">
+            <h4 class="key-points-title">📌 Key Points</h4>
+            <ul class="key-points-list">
+              <li *ngFor="let point of summary.keyPoints" class="key-point-item">
+                {{ point }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="summary-footer">
+            <span class="sentiment-badge" [class]="'sentiment-' + summary.sentiment">
+              {{ summary.sentiment | titlecase }}
+            </span>
+            <span class="model-info">Model: {{ summary.model }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Error -->
+    <div *ngIf="summaryError" class="summary-error-message">
+      {{ summaryError }}
     </div>
 
     <!-- Comments Section -->

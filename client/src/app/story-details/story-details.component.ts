@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { StoriesService, Story, Comment } from '../services/stories.service';
+import { StoriesService, Story, Comment, StorySummary } from '../services/stories.service';
 
 type StoryType = 'top' | 'best' | 'new' | 'bookmarked';
 
@@ -20,6 +20,10 @@ export class StoryDetailsComponent implements OnInit {
   storyType: StoryType = 'top';
   isBookmarked: boolean = false;
   isBookmarkLoading: boolean = false;
+  summary: StorySummary | null = null;
+  isSummaryLoading: boolean = false;
+  isSummaryVisible: boolean = false;
+  summaryError: string | null = null;
 
   constructor(
     private storiesService: StoriesService,
@@ -119,6 +123,38 @@ export class StoryDetailsComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  getStorySummary(): void {
+    if (!this.storyId) return;
+
+    this.isSummaryLoading = true;
+    this.summaryError = null;
+    this.cdr.markForCheck();
+
+    this.storiesService.getStorySummary(this.storyId).subscribe({
+      next: (response: StorySummary) => {
+        console.log('Story summary:', response);
+        this.summary = response;
+        this.isSummaryLoading = false;
+        this.isSummaryVisible = true;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error fetching summary:', error);
+        this.summaryError = `Failed to get summary: ${error.message}`;
+        this.isSummaryLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  toggleSummary(): void {
+    if (this.summary) {
+      this.isSummaryVisible = !this.isSummaryVisible;
+    } else {
+      this.getStorySummary();
+    }
   }
 
   goBack(): void {
