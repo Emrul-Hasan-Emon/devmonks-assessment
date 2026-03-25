@@ -98,3 +98,42 @@ List bookmarks (first page):
 ```bash
 curl "http://localhost:3000/api/bookmark?page=0&size=10"
 ```
+
+Story Summary APIs
+
+- **Base Path:** `/api/story` (Controller version: `1`)
+
+- **GET:** `/api/story/:id/summary`
+  - **Description:** Summarize story comments using AI. Fetches the complete story with nested comments, counts them, and checks for a cached summary. If no cache exists or the comment count has changed, generates a new summary using OpenAI. Returns key points, overall sentiment (positive, negative, mixed, neutral), and a concise summary of the discussion.
+  - **Route Parameters:** `id` (number) - Story ID
+  - **Query Parameters:** None
+  - **Responses:**
+    - `200`: Summary object containing `storyId`, `summary`, `keyPoints` (array), `sentiment`, `commentCount`, `model`, `tokensUsed`, `timestamp`
+    - `400`: Missing OPENAI_API_KEY or story not found
+    - `500`: OpenAI API error
+
+**Response Example:**
+```json
+{
+  "storyId": 123,
+  "summary": "The discussion covered multiple technical approaches to solving the problem. Most commenters agreed on the efficiency trade-offs.",
+  "keyPoints": [
+    "Efficiency vs readability trade-offs debated",
+    "Three main solutions proposed",
+    "Performance concerns raised"
+  ],
+  "sentiment": "mixed",
+  "commentCount": 45,
+  "model": "gpt-4",
+  "tokensUsed": 1250,
+  "timestamp": "2026-03-26T10:30:00Z"
+}
+```
+
+Example:
+
+Summarize comments for story with id 123:
+
+```bash
+curl "http://localhost:3000/api/story/123/summary"
+```
