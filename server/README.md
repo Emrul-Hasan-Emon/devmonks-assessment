@@ -83,6 +83,13 @@ Bookmark APIs
   - **Description:** Returns paginated list of bookmarked stories. Each item is a `StoryItem` (same as story list), with the `kids` property excluded.
   - **Query Parameters:** `page` (number, default: 0), `size` (number, default: 10, max: 100)
 
+- **DELETE:** `/api/bookmark/:storyId`
+  - **Description:** Remove a story from bookmarks by its ID.
+  - **Route Parameters:** `storyId` (number)
+  - **Responses:**
+    - `200`: `{ "success": true, "message": "Bookmark for story <id> deleted successfully" }`
+    - `404`: Bookmark not found
+
 Examples:
 
 Add a bookmark for story `123`:
@@ -97,6 +104,12 @@ List bookmarks (first page):
 
 ```bash
 curl "http://localhost:3000/api/bookmark?page=0&size=10"
+```
+
+Delete bookmark for story `123`:
+
+```bash
+curl -X DELETE "http://localhost:3000/api/bookmark/123"
 ```
 
 Story Summary APIs
