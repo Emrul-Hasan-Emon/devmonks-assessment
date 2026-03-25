@@ -1,0 +1,85 @@
+<div class="stories-container">
+  <!-- Tab Navigation -->
+  <div class="tab-navigation">
+    <button
+      *ngFor="let tab of tabs"
+      [class.active]="activeTab === tab.id"
+      (click)="selectTab(tab.id)"
+      class="tab-button"
+    >
+      {{ tab.label }}
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading stories...</p>
+  </div>
+
+  <!-- Stories List -->
+  <div *ngIf="!isLoading && stories.length > 0" class="stories-list">
+    <div *ngFor="let story of stories" class="story-card">
+      <div class="story-header">
+        <h3 class="story-title">{{ story.title }}</h3>
+        <div class="story-meta">
+          <span class="score" title="Score">⬆️ {{ story.score }}</span>
+          <span class="author" title="Author">👤 {{ story.by }}</span>
+          <span class="comments" title="Comments" *ngIf="story.descendants !== undefined">
+            💬 {{ story.descendants }}
+          </span>
+        </div>
+      </div>
+
+      <div class="story-url" *ngIf="story.url">
+        <a [href]="story.url" target="_blank" rel="noopener">
+          {{ story.url | slice: 0 : 80 }}{{ story.url.length > 80 ? '...' : '' }}
+        </a>
+      </div>
+
+      <div class="story-footer">
+        <span class="date">{{ formatDate(story.time) }}</span>
+        <button
+          class="read-more-btn"
+          (click)="openStory(story.url)"
+          *ngIf="story.url"
+        >
+          Read More
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && stories.length === 0" class="empty-state">
+    <p>No stories found.</p>
+  </div>
+
+  <!-- Pagination Controls -->
+  <div *ngIf="!isLoading && stories.length > 0" class="pagination">
+    <div class="page-numbers">
+      <button
+        *ngFor="let pageNum of getPageNumbers()"
+        (click)="goToPage(pageNum)"
+        [class.active]="currentPage === pageNum - 1"
+        class="page-btn"
+        [disabled]="isLoading"
+        [title]="'Go to page ' + pageNum"
+      >
+        {{ pageNum }}
+      </button>
+    </div>
+
+    <span class="page-info">
+      Page {{ currentPage + 1 }} of {{ totalPages }}
+    </span>
+
+    <span class="page-size-info">
+      ({{ stories.length }} items)
+    </span>
+  </div>
+</div>
