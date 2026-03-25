@@ -178,6 +178,41 @@
   background: #0052a3;
 }
 
+.bookmark-btn {
+  padding: 6px 12px;
+  background: #fff5e6;
+  color: #ff9800;
+  border: 1px solid #ffb84d;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bookmark-btn:hover {
+  background: #ffe5a1;
+  border-color: #ff8c00;
+}
+
+.bookmark-btn.bookmarked {
+  background: #fff3cd;
+  border-color: #ffc107;
+  color: #ff6b35;
+}
+
+.bookmark-btn.bookmarked:hover {
+  background: #ffe5a1;
+  border-color: #ff9800;
+}
+
+.bookmark-btn:disabled,
+.details-btn:disabled,
+.read-more-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Pagination */
 .pagination {
   display: flex;

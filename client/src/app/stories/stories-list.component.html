@@ -57,6 +57,24 @@
           >
             Read More
           </button>
+          <button
+            class="bookmark-btn"
+            *ngIf="!isStoryBookmarked(story.id)"
+            (click)="addToBookmarks(story.id, $event)"
+            [disabled]="bookmarkingStoryIds.has(story.id)"
+            title="Add to bookmarks"
+          >
+            ⭐ Bookmark
+          </button>
+          <button
+            class="bookmark-btn bookmarked"
+            *ngIf="isStoryBookmarked(story.id)"
+            (click)="removeFromBookmarks(story.id, $event)"
+            [disabled]="bookmarkingStoryIds.has(story.id)"
+            title="Remove from bookmarks"
+          >
+            ⭐ Bookmarked
+          </button>
         </div>
       </div>
     </div>

@@ -48,6 +48,28 @@
           Visit Site
         </button>
       </div>
+
+      <!-- Bookmark Section -->
+      <div class="bookmark-section">
+        <button
+          *ngIf="!isBookmarked"
+          class="bookmark-btn"
+          (click)="addToBookmarks()"
+          [disabled]="isBookmarkLoading"
+          title="Add to bookmarks"
+        >
+          ⭐ Add to Bookmarks
+        </button>
+        <button
+          *ngIf="isBookmarked"
+          class="bookmark-btn bookmarked"
+          (click)="removeFromBookmarks()"
+          [disabled]="isBookmarkLoading"
+          title="Remove from bookmarks"
+        >
+          ⭐ Remove from Bookmarks
+        </button>
+      </div>
     </div>
 
     <!-- Comments Section -->

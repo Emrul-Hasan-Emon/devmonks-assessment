@@ -27,6 +27,8 @@ export class StoriesListComponent implements OnInit {
   error: string | null = null;
   totalPages: number = 0;
   hasMorePages: boolean = false;
+  bookmarkedStoryIds: Set<number> = new Set();
+  bookmarkingStoryIds: Set<number> = new Set();
 
   tabs: Tab[] = [
     { id: 'top', label: 'Top Stories' },
@@ -112,11 +114,87 @@ export class StoriesListComponent implements OnInit {
         this.isLoading = false;
         this.cdr.markForCheck();
         console.log('Loaded stories:', this.stories);
+        
+        // Check bookmark status for each story
+        this.stories.forEach(story => {
+          this.checkIfBookmarked(story.id);
+        });
       },
       error: (error) => {
         console.error('Error loading stories:', error);
         this.error = `Failed to load stories: ${error.message}`;
         this.isLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  checkIfBookmarked(storyId: number): void {
+    this.storiesService.isBookmarked(storyId).subscribe({
+      next: (response: any) => {
+        if (response.isBookmarked) {
+          this.bookmarkedStoryIds.add(storyId);
+        } else {
+          this.bookmarkedStoryIds.delete(storyId);
+        }
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error checking bookmark status:', error);
+      }
+    });
+  }
+
+  isStoryBookmarked(storyId: number): boolean {
+    return this.bookmarkedStoryIds.has(storyId);
+  }
+
+  addToBookmarks(storyId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    this.bookmarkingStoryIds.add(storyId);
+    this.cdr.markForCheck();
+
+    this.storiesService.addBookmark(storyId).subscribe({
+      next: (response) => {
+        console.log('Story added to bookmarks:', response);
+        this.bookmarkedStoryIds.add(storyId);
+        this.bookmarkingStoryIds.delete(storyId);
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        console.error('Error adding bookmark:', error);
+        this.bookmarkingStoryIds.delete(storyId);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  removeFromBookmarks(storyId: number, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    
+    this.bookmarkingStoryIds.add(storyId);
+    this.cdr.markForCheck();
+
+    this.storiesService.removeBookmark(storyId).subscribe({
+      next: (response) => {
+        console.log('Story removed from bookmarks:', response);
+        this.bookmarkedStoryIds.delete(storyId);
+        this.bookmarkingStoryIds.delete(storyId);
+        this.cdr.markForCheck();
+        
+        // If we're viewing the bookmarked tab, reload the list to show updated bookmarks
+        if (this.activeTab === 'bookmarked') {
+          this.loadStories();
+        }
+      },
+      error: (error) => {
+        console.error('Error removing bookmark:', error);
+        this.bookmarkingStoryIds.delete(storyId);
         this.cdr.markForCheck();
       }
     });

@@ -80,11 +80,19 @@ export class StoriesService {
   }
 
   getStoryDetailsWithComments(id: number, type: 'top' | 'best' | 'new' | 'bookmarked' = 'top'): Observable<Story> {
-    const endpoint = type === 'bookmarked' ? `${this.bookmarkUrl}/${id}` : `${this.baseUrl}/${type}-story-details/${id}`;
+    const endpoint =`${this.baseUrl}/story-details/${id}`;
     return this.http.get<Story>(endpoint);
   }
 
   addBookmark(storyId: number): Observable<any> {
     return this.http.post(`${this.bookmarkUrl}`, { storyId });
+  }
+
+  removeBookmark(storyId: number): Observable<any> {
+    return this.http.delete(`${this.bookmarkUrl}/${storyId}`);
+  }
+
+  isBookmarked(storyId: number): Observable<{ isBookmarked: boolean; storyId: number }> {
+    return this.http.get<{ isBookmarked: boolean; storyId: number }>(`${this.bookmarkUrl}/status/${storyId}`);
   }
 }
