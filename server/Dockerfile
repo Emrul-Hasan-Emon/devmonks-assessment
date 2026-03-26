@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -24,7 +24,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy built app from builder
 COPY --from=builder /app/dist ./dist
@@ -33,4 +33,4 @@ COPY --from=builder /app/dist ./dist
 EXPOSE 3000
 
 # Start the app
-CMD ["npm", "run", "start:prod"]
+CMD ["node", "dist/main"]
