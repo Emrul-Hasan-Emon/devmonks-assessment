@@ -4,6 +4,15 @@
 ## Overview
 This project includes a complete Docker Compose setup that allows you to run the entire application (client, server, and database) without installing any local dependencies.
 
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Development Workflow](#development-workflow)
+- [Configuration](#configuration)
+- [Useful Commands](#useful-commands)
+- [Project Structure](#project-structure)
+- [Troubleshooting](#troubleshooting)
+
 ## Prerequisites
 - Docker Desktop (or Docker + Docker Compose installed)
 - No other dependencies need to be installed locally
@@ -22,7 +31,7 @@ cd devmonks-assessment
 From the project root directory, run:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 This command will:
@@ -47,111 +56,227 @@ Once all containers are running (usually takes 1-3 minutes on first start):
 To stop all containers:
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 To stop and remove all data (including database):
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Development Workflow
 
 ### Running After Initial Setup
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### Rebuilding After Code Changes
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ### Checking if Everything is Running
 ```bash
-docker-compose ps
+docker compose ps
 ```
 
 ### Viewing Application Output
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## Configuration
 
-### Environment Variables
-The `.env` file at the project root contains all environment variables. You can modify these values before running `docker-compose up`:
+### Environment Variables - Server
+The `.env` file at the project root contains all environment variables. You can modify these values before running `docker compose up`:
 
+#### Populate the ENV Keys with required information
 ```env
 APP_NAME=DEV_MONKS_ASSESSMENT
 NODE_ENV=development
 PORT=3000
-DB_HOST=postgres
+DB_HOST=
 DB_PORT=5432
-DB_DATABASE=devmonk
-DB_USERNAME=postgres
-DB_PASSWORD=kingemon
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
 DB_LOGGER=false
 DB_SYNCHRONIZE=true
 HN_URL=https://hacker-news.firebaseio.com
+MAXIMUM_TOP_STORIES=100 // It will be used for Top, Best & New Stories. DOn't get confused with the name
 OPENAI_URL=https://api.openai.com/
 OPENAI_API_KEY=your_api_key_here
 GROK_API_KEY=your_api_key_here
-OPENAI_MODEL=gpt-5-nano
+OPENAI_MODEL=gpt-5-nano // model name
 ```
 
 ## Useful Commands
 
-### Rebuild Images After Code Changes
-If you make changes to the code and want to rebuild the images, use:
+### Build and Run Commands
 
+#### Build Docker Images
 ```bash
-docker-compose up -d --build
+docker compose build
 ```
 
-**When to use `--build` flag:**
-- After modifying code in `client/` or `server/` directories
-- After installing new npm dependencies (`package.json` changes)
-- After updating any configuration files
-- To ensure the latest code changes are included in the containers
-
-**Example workflow:**
+#### Start All Containers
 ```bash
-# 1. Make code changes
-# 2. Rebuild and restart containers
-docker-compose up -d --build
-
-# 3. View logs to verify everything works
-docker-compose logs -f server
+docker compose up -d
 ```
 
-### View Container Logs
+#### Build and Start (After Code Changes)
 ```bash
-# View all containers logs
-docker-compose logs -f
-
-# View specific container logs
-docker-compose logs -f server
-docker-compose logs -f client
-docker-compose logs -f postgres
+docker compose up -d --build
 ```
 
-### Access Database
-To connect to the PostgreSQL database:
-
+#### Stop All Containers (Keep Data)
 ```bash
-docker-compose exec postgres psql -U postgres -d devmonk
+docker compose down
 ```
 
-### Execute Commands in Container
+#### Stop All Containers and Remove Data
 ```bash
-# Run commands in the server container
-docker-compose exec server npm run migration:run
-
-# Run commands in the client container
-docker-compose exec client npm run test
+docker compose down -v
 ```
+
+#### Restart All Containers
+```bash
+docker compose restart
+```
+
+### View Container Status and Logs
+
+#### Check All Containers Status
+```bash
+docker compose ps
+```
+
+#### View All Containers Logs (Live)
+```bash
+docker compose logs -f
+```
+
+#### View Specific Container Logs (Live)
+```bash
+# Server logs
+docker compose logs -f server
+
+# Client logs
+docker compose logs -f client
+
+# Database logs
+docker compose logs -f postgres
+```
+
+### Test API Endpoints
+
+#### Health Check
+```bash
+curl http://localhost:3000
+```
+
+#### Test Server is Running
+```bash
+curl -i http://localhost:3000
+```
+
+### Database Commands
+
+#### Access PostgreSQL Database (dynamic user/db)
+Use variables for user and database name so this works for your environment:
+
+```bash
+DB_USER=postgres DB_NAME=devmonk
+# or override to your values
+# DB_USER=myuser DB_NAME=mydb
+
+docker compose exec postgres psql -U "$DB_USER" -d "$DB_NAME"
+```
+
+If you prefer reading from your `.env` file:
+
+```bash
+source .env
+docker compose exec postgres psql -U "$DB_USERNAME" -d "$DB_DATABASE"
+```
+
+#### Run Database Migrations
+```bash
+docker compose exec server npm run migration:run
+```
+
+#### Reset Database
+```bash
+docker compose exec server npm run migration:reset
+```
+
+### Execute Commands in Containers
+
+#### Run Commands in Server Container
+```bash
+# Run migrations
+docker compose exec server npm run migration:run
+
+# Run tests
+docker compose exec server npm test
+
+# Run linter
+docker compose exec server npm run lint
+```
+
+#### Run Commands in Client Container
+```bash
+# Run tests
+docker compose exec client npm test
+
+# Run linter
+docker compose exec client npm run lint
+```
+
+### Full Workflow Example
+
+```bash
+# 1. Build images for the first time
+docker compose build
+
+# 2. Start all containers
+docker compose up -d
+
+# 3. Wait for services to initialize (usually 10-30 seconds)
+sleep 10
+
+# 4. Check if everything is running
+docker compose ps
+
+# 5. View logs to verify no errors
+docker compose logs
+
+# 6. Test the server is responding
+curl http://localhost:3000
+
+# 7. Access the application
+# Client: http://localhost:4200
+# Server API: http://localhost:3000
+```
+
+### Rebuild After Code Changes
+
+When you make changes to the code:
+
+```bash
+# Method 1: Rebuild and restart (recommended)
+docker compose down
+docker compose up -d --build
+
+# Method 2: Quick rebuild and restart
+docker compose up -d --build
+
+# View logs to verify
+docker compose logs -f server
+```
+
 
 ## Project Structure
 
@@ -163,7 +288,7 @@ docker-compose exec client npm run test
   - `Dockerfile` - Multi-stage build for optimized NestJS production image
   - `package.json` - Server dependencies
 
-- `.env` - Environment configuration (used by docker-compose)
+- `.env` - Environment configuration (used by `docker compose`)
 
 - `docker-compose.yml` - Docker Compose configuration
 
@@ -208,22 +333,22 @@ ports:
 Ensure PostgreSQL is healthy before the server starts:
 
 ```bash
-docker-compose logs postgres
+docker compose logs postgres
 ```
 
 ### Container Exits Immediately
 Check the logs:
 
 ```bash
-docker-compose logs server
-docker-compose logs client
+docker compose logs server
+docker compose logs client
 ```
 
 ### Rebuild After Dependency Changes
 If you modify `package.json` in either client or server, rebuild:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 ## Key Features
@@ -234,4 +359,4 @@ docker-compose up -d --build
 ✅ **Service Health Checks** - Database health check before server starts  
 ✅ **Persistent Database** - Data persists between container restarts  
 ✅ **Environment Configuration** - Easy to customize via .env file  
-✅ **Networking** - Services communicate via container names  
+✅ **Networking** - Services communicate via container names
