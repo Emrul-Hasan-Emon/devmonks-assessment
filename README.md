@@ -5,6 +5,7 @@
 This project includes a complete Docker Compose setup that allows you to run the entire application (client, server, and database) without installing any local dependencies.
 
 ## Table of Contents
+- [Assignment Video Overview](#assignment-video-overview)
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
 - [Development Workflow](#development-workflow)
@@ -12,6 +13,11 @@ This project includes a complete Docker Compose setup that allows you to run the
 - [Useful Commands](#useful-commands)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
+
+## Assignment Video Overview
+For a detailed video walkthrough of this assignment, please view the overview video:
+
+📹 **[Assignment Video Overview](https://drive.google.com/file/d/1BSbnq4tc-GKg-MJIbVlwV0YqdKqJ9hQc/view?usp=sharing)**
 
 ## Prerequisites
 - Docker Desktop (or Docker + Docker Compose installed)
